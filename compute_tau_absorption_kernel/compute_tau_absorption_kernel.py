@@ -162,21 +162,38 @@ result = kernel_tuner.run_kernel(
 
 compare_fields(result[-2], tau_after_minor, 'minor')
 
+# Tune!
+tune_params_major = dict()
+tune_params_major["block_size_x"] = [4,8,16,32]
+tune_params_major["block_size_y"] = [1]
+tune_params_major["block_size_z"] = [4,8,16,32]
 
-## Tune!
-#tune_params = dict()
-#tune_params["block_size_x"] = [4,8,16,32]
-#tune_params["block_size_y"] = [1]
-#tune_params["block_size_z"] = [4,8,16,32]
-#
-#answer = len(args_major)*[None]
-#answer[-1] = tau_after_major
-#
-## With result checking:
-#result, env = kernel_tuner.tune_kernel(
-#        kernel_name_major, kernel_string, problem_size_major,
-#        args_major, tune_params, compiler_options=cp,
-#        answer=answer, atol=1e-14)
+tune_params_minor = dict()
+tune_params_minor["block_size_x"] = [4,8,16,32,64]
+tune_params_minor["block_size_y"] = [4,8,16,32,64]
+
+answer_major = len(args_major)*[None]
+answer_major[-2] = tau_after_major
+
+answer_minor = len(args_minor)*[None]
+answer_minor[-2] = tau_after_minor
+
+# Reset input tau
+tau[:] = 0.
+
+# With result checking:
+result, env = kernel_tuner.tune_kernel(
+        kernel_name_major, kernel_string, problem_size_major,
+        args_major, tune_params_major, compiler_options=cp,
+        answer=answer_major, atol=1e-14)
+
+tau[:] = tau_after_major
+
+result, env = kernel_tuner.tune_kernel(
+        kernel_name_minor, kernel_string, problem_size_minor,
+        args_minor, tune_params_minor, compiler_options=cp,
+        answer=answer_minor, atol=1e-14)
+
 
 # Without result checking (returns timings):
 #result, env = kernel_tuner.tune_kernel(
