@@ -1,5 +1,6 @@
 import kernel_tuner
 import numpy as np
+import json
 
 # To supress the `int* != BOOL_TYPE` warnings:
 #import warnings
@@ -164,13 +165,13 @@ compare_fields(result[-2], tau_after_minor, 'minor')
 
 # Tune!
 tune_params_major = dict()
-tune_params_major["block_size_x"] = [4] # [4,8,16,32]
-tune_params_major["block_size_y"] = [4] # [1,2,4]
-tune_params_major["block_size_z"] = [4] # [4,8,16,32]
+tune_params_major["block_size_x"] = [1,2,3,4,5,6,7,8,9,10,11,12,14]
+tune_params_major["block_size_y"] = [1,2,3,4,5,6]
+tune_params_major["block_size_z"] = [1,2,3,4,5,6,32]
 
 tune_params_minor = dict()
-tune_params_minor["block_size_x"] = [4,8,16,24,32,48,64]
-tune_params_minor["block_size_y"] = [4,8,16,24,32,48,64]
+tune_params_minor["block_size_x"] = [1,2,3,4,5,6,7,8,9,10,11,12,32]
+tune_params_minor["block_size_y"] = [1,2,3,4,5,6,7,8,9,10,11,12,32]
 
 answer_major = len(args_major)*[None]
 answer_major[-2] = tau_after_major
@@ -187,6 +188,9 @@ result, env = kernel_tuner.tune_kernel(
         args_major, tune_params_major, compiler_options=cp,
         answer=answer_major, atol=1e-14)
 
+with open("timings_major.json", 'w') as fp:
+    json.dump(result, fp)
+
 tau[:] = tau_after_major
 
 result, env = kernel_tuner.tune_kernel(
@@ -194,8 +198,5 @@ result, env = kernel_tuner.tune_kernel(
         args_minor, tune_params_minor, compiler_options=cp,
         answer=answer_minor, atol=1e-14)
 
-
-# Without result checking (returns timings):
-#result, env = kernel_tuner.tune_kernel(
-#        kernel_name, kernel_string, problem_size,
-#        args, tune_params, compiler_options=cp)
+with open("timings_minor.json", 'w') as fp:
+    json.dump(result, fp)
